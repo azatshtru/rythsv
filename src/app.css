@@ -1,0 +1,8 @@
+@import "tailwindcss";
+
+@theme {
+    --font-lilex: 'Lilex', monospace; 
+    --font-caveat: 'Caveat', cursive; 
+    --font-eb-garamond: 'EB Garamond', serif; 
+    --font-work-sans: 'Work Sans', sans-serif; 
+}
