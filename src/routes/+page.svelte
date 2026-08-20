@@ -1,6 +1,6 @@
 <script lang="ts">
     import Editor from "$lib/components/Editor.svelte";
-    let content = $state('...');
+    let content = $state('# rythspace\nsimple, beautiful notes.');
     function setContent(newContent: string) {
         content = newContent;
     }
