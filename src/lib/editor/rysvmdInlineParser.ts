@@ -24,7 +24,6 @@ export function rysvmdInlineParser() {
                         underscoreRun += 1;
                         current += 1;
                     }
-                    console.log(underscoreRun);
                     switch(underscoreRun) {
                         case 1: return cx.addDelimiter(underscore, pos, pos + 1, true, true);
                         case 2: return cx.addDelimiter(dunder, pos, pos + 2, true, true);
