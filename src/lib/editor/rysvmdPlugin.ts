@@ -1,4 +1,4 @@
-import { StateField, RangeSetBuilder } from "@codemirror/state";
+import { StateField } from "@codemirror/state";
 import { EditorView, Decoration } from "@codemirror/view";
 import { defineLanguageFacet, Language, LanguageSupport, syntaxTree } from "@codemirror/language";
 import { parser as base } from '@lezer/markdown';
@@ -12,6 +12,7 @@ import {
     codespanDecoration,
     inlineMathDecoration,
     underlineDecoration,
+    grayDecoration,
 } from './rysvmdDecorations.ts';
 import { rysvmdInlineParser } from './rysvmdInlineParser.ts';
 
@@ -33,7 +34,15 @@ export function rysvmdHighlights() {
         update(decorations, tr) {
             decorations = decorations.map(tr.changes);
             if (tr.docChanged || tr.scrollIntoView) {
-                const builder = new RangeSetBuilder<Decoration>();
+                const builder = {
+                    ranges: [],
+                    add(from, to, decoration) {
+                        this.ranges.push(decoration.range(from, to));
+                    },
+                    finish() {
+                        return this.ranges;
+                    },
+                };
                 const tree = syntaxTree(tr.state);
                 tree.iterate({
                     enter: (node) => {
@@ -62,6 +71,10 @@ export function rysvmdHighlights() {
                                 builder.add(node.from + 2, node.to - 2, underlineDecoration);
                                 break;
 
+                            case 'Dunder':
+                                builder.add(node.from, node.to, grayDecoration);
+                                break;
+
                             case 'Strikethrough':
                                 builder.add(node.from + 1, node.to - 1, strikethroughDecoration);
                                 break;
@@ -77,7 +90,8 @@ export function rysvmdHighlights() {
                     }
                 });
 
-                return builder.finish();
+                const set = Decoration.set(builder.finish(), true);
+                return set;
             }
 
             return decorations;
