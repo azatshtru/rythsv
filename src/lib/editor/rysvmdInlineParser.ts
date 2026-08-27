@@ -19,55 +19,113 @@ function parseMath(cx, next, pos) {
     return -1;
 }
 
-function rysvmdInlineResolver(cx) {
+function rysvmdDelimiterResolver(cx) {
     return {
         cx,
         instructions: [],
         stack: [],
-        addDelimiter(ch, delimiter, from, to, opens, closes) {
-            const last = this.stack.findLastIndex(d => d.ch === ch);
-            this.instructions.push({
-                delimiter, 
+        makeDelimiter(delimiter, from, to, opens, closes) {
+            return {
+                delimiter,
                 from,
                 to,
                 opens,
                 closes
-            });
-            if(last > -1) {
-                this.stack.length = last;
-            } else {
-                this.stack.push({ ch })
-            }
+            };
         },
         addElement(elt) {
             this.instructions.push({ elt });
+            return elt.to;
+        },
+        addAsterisk(from) {
+            const last = this.stack.findLastIndex(p => p === '*');
+            if(last > -1) {
+                this.stack.length = last;
+            } else {
+                this.stack.push('*');
+            }
+            this.instructions.push(this.makeDelimiter(asterisk, from, from + 1, true, true));
+            return from + 1;
+        },
+        addTilde(from) {
+            const last = this.stack.findLastIndex(p => p === '~');
+            if(last > -1) {
+                this.stack.length = last;
+            } else {
+                this.stack.push('~');
+            }
+            this.instructions.push(this.makeDelimiter(tilde, from, from + 1, true, true));
+            return from + 1;
+        },
+        u3Split(major) {
+            const idx = this.instructions.findLastIndex(p => Object.hasOwn(p, 'isU3'));
+            if(idx === -1) {
+                return;
+            }
+            const [delim, antidelim] = major ? [dunder, underscore] : [underscore, dunder];
+            const delta = major ? 2 : 1;
+            const from = this.instructions[idx].from;
+            this.instructions[idx] = this.makeDelimiter(delim, from, from + delta, true, true);
+            this.instructions[idx + 1] = this.makeDelimiter(antidelim, from + delta, from + 3, true, true);
         },
         addU3(from) {
-            this.instructions.push({ ch: '___', from });
-            this.stack.push({ ch: '___' });
-            this.addNoop();
-        },
-        findLastU3() {
-            const stackLast = this.stack.findLastIndex(d => d.ch === '___');
-            if(stackLast === -1) {
-                return null;
-            }
-            return {
-                idx: this.instructions.findLastIndex(d => Object.hasOwn(d, 'ch') && d.ch === '___'),
-                stack: stackLast
-            };
-        },
-        u1NearestOrU2() {
-            const u1 = this.stack.findLastIndex(d => d.ch === '_');
-            const u2 = this.stack.findLastIndex(d => d.ch === '__');
-            const last = Math.max(u1, u2);
+            const lastU3 = this.stack.findLastIndex(p => p === '___');
+            const lastU1 = this.stack.findLastIndex(p => p === '_');
+            const lastU2 = this.stack.findLastIndex(p => p === '__');
+            const last = Math.max(lastU3, lastU1, lastU2);
             if(last > -1) {
-                return this.stack[last].ch.length;
+                const run = this.stack[last].length;
+                this.stack.length = last;
+                switch(run) {
+                    case 1:
+                        this.instructions.push(this.makeDelimiter(underscore, from, from + 1, true, true));
+                        break;
+                    case 2:
+                        this.instructions.push(this.makeDelimiter(dunder, from, from + 2, true, true));
+                        break;
+                    default:
+                        this.u3Split(true);
+                        this.instructions.push(this.makeDelimiter(underscore, from, from + 1, true, true));
+                        this.instructions.push(this.makeDelimiter(dunder, from + 1, from + 3, true, true));
+                        break;
+                }
+                return from + run;
+            } else {
+                this.stack.push('___');
+                this.instructions.push({ isU3: true, from });
+                this.instructions.push({ noop: true });
+                return from + 3;
             }
-            return null;
         },
-        addNoop() {
-            this.instructions.push({ noop: true });
+        addUnderscore(from) {
+            const lastU3 = this.stack.findLastIndex(p => p === '___');
+            const lastU1 = this.stack.findLastIndex(p => p === '_');
+            if(lastU3 > -1) {
+                this.u3Split(true);
+                this.stack.length = lastU3 + 1;
+                this.stack[lastU3] = '__';
+            } else if(lastU1 > -1) {
+                this.stack.length = lastU1;
+            } else {
+                this.stack.push('_');
+            }
+            this.instructions.push(this.makeDelimiter(underscore, from, from + 1, true, true));
+            return from + 1;
+        },
+        addDunder(from) {
+            const lastU3 = this.stack.findLastIndex(p => p === '___');
+            const lastU2 = this.stack.findLastIndex(p => p === '__');
+            if(lastU3 > -1) {
+                this.u3Split(false);
+                this.stack.length = lastU3 + 1;
+                this.stack[lastU3] = '_';
+            } else if(lastU2 > -1) {
+                this.stack.length = lastU2;
+            } else {
+                this.stack.push('__');
+            }
+            this.instructions.push(this.makeDelimiter(dunder, from, from + 2, true, true));
+            return from + 2;
         },
         resolve() {
             for(const instruction of this.instructions) {
@@ -84,94 +142,45 @@ function rysvmdInlineResolver(cx) {
                 }
             }
         },
-        makeDelimiter(delimiter, from, to, opens, closes) {
-            return {
-                delimiter, from, to, opens, closes
-            };
-        },
-    }
+    };
 }
 
 function resolveDelimiters(cx, slice, offset, ignore) {
     let i = offset;
     let j = 0;
-    const resolver = rysvmdInlineResolver(cx);
+    const resolver = rysvmdDelimiterResolver(cx);
 
     while(i < offset + slice.length) {
         if (j < ignore.length && ignore[j].from <= i && i < ignore[j].to) {
-            i = ignore[j].to;
-            resolver.addElement(ignore[j]);
+            i = resolver.addElement(ignore[j]);
             j += 1;
         }
 
         const c = slice.at(i - offset);
         if(c === '*') {
-            resolver.addDelimiter('*', asterisk, i, i + 1, true, true);
+            i = resolver.addAsterisk(i);
+            continue;
         } else if(c === '~') {
-            resolver.addDelimiter('~', tilde, i, i + 1, true, true);
+            i = resolver.addTilde(i);
+            continue;
         } else if(c === '_') {
             let underscoreRun = 0;
             while(slice.at(i - offset + underscoreRun) === '_' && i < cx.end) {
                 underscoreRun += 1;
             }
-            
-            let u3 = resolver.findLastU3();
-            if(u3 === null) {
-                switch(underscoreRun) {
-                    case 1:
-                        resolver.addDelimiter('_', underscore, i, i + 1, true, true);
-                        break; 
-                    case 2:
-                        resolver.addDelimiter('__', dunder, i, i + 2, true, true);
-                        break; 
-                    default:
-                        const nearest = resolver.u1NearestOrU2();
-                        if(nearest === null) {
-                            resolver.addU3(i + underscoreRun - 3);
-                        } else {
-                            resolver.addDelimiter(
-                                '_'.repeat(nearest),
-                                nearest === 1 ? underscore : dunder,
-                                i, i + nearest,
-                                true, true
-                            );
-                            underscoreRun = nearest;
-                        }
-                        break;
-                }
-            } else {
-                const from = resolver.instructions[u3.idx].from;
-                switch(underscoreRun) {
-                    case 1:
-                        resolver.instructions[u3.idx] = resolver.makeDelimiter(dunder, from, from + 2, true, true);
-                        resolver.instructions[u3.idx + 1] = resolver.makeDelimiter(underscore, from, from + 1, true, true);
-                        resolver.stack[u3.stack] = { ch: '__' };
-                        resolver.stack.length = u3.stack + 1;
-                        resolver.stack.push({ ch: '_' });
-                        resolver.addDelimiter('_', underscore, i, i + 1, true, true);
-                        break; 
-                    case 2:
-                        resolver.instructions[u3.idx] = resolver.makeDelimiter(underscore, from, from + 1, true, true);
-                        resolver.instructions[u3.idx + 1] = resolver.makeDelimiter(dunder, from, from + 2, true, true);
-                        resolver.stack[u3.stack] = { ch: '_' };
-                        resolver.stack.length = u3.stack + 1;
-                        resolver.stack.push({ ch: '__' });
-                        resolver.addDelimiter('__', dunder, i, i + 2, true, true);
-                        break; 
-                    default:
-                        resolver.instructions[u3.idx] = resolver.makeDelimiter(dunder, from, from + 2, true, true);
-                        resolver.instructions[u3.idx + 1] = resolver.makeDelimiter(underscore, from, from + 1, true, true);
-                        resolver.stack.length = u3.stack;
-                        resolver.stack.push({ ch: '__' });
-                        resolver.stack.push({ ch: '_' });
-                        resolver.addDelimiter('_', underscore, i, i + 1, true, true);
-                        resolver.addDelimiter('__', dunder, i + 1, i + 3, true, true);
-                        underscoreRun = 3;
-                        break;
-                }
-            }
 
-            i += underscoreRun;
+            switch(underscoreRun) {
+                case 1:
+                    i = resolver.addUnderscore(i);
+                    break;
+                case 2:
+                    i = resolver.addDunder(i);
+                    break;
+                default:
+                    i = resolver.addU3(i);
+                    break;
+            }
+            
             continue;
         }
         i += 1;
