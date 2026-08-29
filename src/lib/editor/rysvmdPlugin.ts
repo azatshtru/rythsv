@@ -15,9 +15,10 @@ import {
     grayDecoration,
 } from './rysvmdDecorations.ts';
 import { rysvmdInlineParser } from './rysvmdInlineParser.ts';
+import { rysvmdNewlineParser } from './rysvmdNewlineParser.ts';
 
 export function rysvmdLanguage() {
-    const parser = base.configure([rysvmdInlineParser()]);
+    const parser = base.configure([rysvmdInlineParser(), rysvmdNewlineParser()]);
     return new Language(defineLanguageFacet({}), parser, [], "rysvmd");
 }
 
@@ -76,10 +77,12 @@ export function rysvmdHighlights() {
                                 break;
 
                             case 'Strikethrough':
-                                builder.add(node.from + 1, node.to - 1, strikethroughDecoration);
+                                if(node.from + 1 < node.to - 1) {
+                                    builder.add(node.from + 1, node.to - 1, strikethroughDecoration);
+                                }
                                 break;
 
-                            case 'InlineCode':
+                            case 'Codespan':
                                 builder.add(node.from, node.to, codespanDecoration);
                                 break;
 

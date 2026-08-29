@@ -19,6 +19,29 @@ function parseMath(cx, next, pos) {
     return -1;
 }
 
+function parseCodespan(cx, next, start) {
+    if (next != 96 /* '`' */ || (start && cx.char(start - 1) == 96)) return -1;
+    let pos = start + 1;
+    while (pos < cx.end && cx.char(pos) == 96) pos++;
+    let size = pos - start,
+    curSize = 0;
+    for (; pos < cx.end; pos++) {
+        if (cx.char(pos) == 96) {
+            curSize++;
+            if (curSize == size && cx.char(pos + 1) != 96)
+                return cx.append(
+                    cx.elt("Codespan", start, pos + 1, [
+                        cx.elt("BacktickRun", start, start + size),
+                        cx.elt("BacktickRun", pos + 1 - size, pos + 1),
+                    ]),
+                );
+        } else {
+            curSize = 0;
+        }
+    }
+    return -1;
+}
+
 function rysvmdDelimiterResolver(cx) {
     return {
         cx,
@@ -189,9 +212,28 @@ function resolveDelimiters(cx, slice, offset, ignore) {
     resolver.resolve();
 }
 
+function rysvmdInlineParserImpl(cx, next, pos) {
+    if(next === '$'.codePointAt(0)) {
+        return parseMath(cx, next, pos);
+    } else if(next === '`'.codePointAt(0)) {
+        return parseCodespan(cx, next, pos);
+    } else if(next === '['.codePointAt(0)) {
+        return cx.addDelimiter(bra, pos, pos + 1, true, false);
+    } else if (next === ']'.codePointAt(0)) {
+        const open = cx.findOpeningDelimiter(bra);
+        if(open !== null) {
+            const start = cx.getDelimiterAt(open).from;
+            const elts = cx.takeContent(open);
+            resolveDelimiters(cx, cx.slice(start + 1, pos), start + 1, elts);
+            return cx.addElement(cx.elt("Branch", start, pos + 1, cx.takeContent(open)));
+        }
+    }
+    return -1;
+}
+
 export function rysvmdInlineParser() {
     const inlineEmphasis = {
-        remove: ["Emphasis", "StrongEmphasis", "Comment", "ProcessingInstruction", "Autolink", "HTMLTag", "Link"],
+        remove: ["Emphasis", "StrongEmphasis", "Comment", "ProcessingInstruction", "Autolink", "HTMLTag", "Link", "InlineCode"],
         defineNodes: [
             "Bold",
             "Asterisk",
@@ -203,30 +245,21 @@ export function rysvmdInlineParser() {
             "Dunder",
             "InlineMath",
             "Dollar",
+            "Codespan",
+            "BacktickRun",
             "Bra",
             "Ket",
-            "Branch"
+            "Branch",
         ],
         parseInline: [{
             name: "rysvmdInline",
             parse(cx, next, pos) {
-                if(next === '$'.codePointAt(0)) {
-                    return parseMath(cx, next, pos);
-                } else if(next === '['.codePointAt(0)) {
-                    return cx.addDelimiter(bra, pos, pos + 1, true, false);
-                } else if (next === ']'.codePointAt(0)) {
-                    const open = cx.findOpeningDelimiter(bra);
-                    if(open !== null) {
-                        const start = cx.getDelimiterAt(open).from;
-                        const elts = cx.takeContent(open);
-                        resolveDelimiters(cx, cx.slice(start + 1, pos), start + 1, elts);
-                        return cx.addElement(cx.elt("Branch", start, pos + 1, cx.takeContent(open)));
-                    }
-                    return -1;
-                } else if(pos + 1 === cx.end) {
+                const r = rysvmdInlineParserImpl(cx, next, pos);
+                if(pos + 1 >= cx.end || r >= cx.end) {
                     const elts = cx.takeContent(0);
                     resolveDelimiters(cx, cx.text, cx.offset, elts);
                 }
+                return r;
             }
         }]
     }
