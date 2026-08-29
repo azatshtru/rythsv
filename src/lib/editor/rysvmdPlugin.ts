@@ -13,6 +13,7 @@ import {
     inlineMathDecoration,
     underlineDecoration,
     grayDecoration,
+    urlBranchDecoration,
 } from './rysvmdDecorations.ts';
 import { rysvmdInlineParser } from './rysvmdInlineParser.ts';
 import { rysvmdNewlineParser } from './rysvmdNewlineParser.ts';
@@ -69,7 +70,9 @@ export function rysvmdHighlights() {
                                 break;
 
                             case 'Underline':
-                                builder.add(node.from + 2, node.to - 2, underlineDecoration);
+                                if(node.from + 2 < node.to - 2) {
+                                    builder.add(node.from + 2, node.to - 2, underlineDecoration);
+                                }
                                 break;
 
                             case 'Dunder':
@@ -88,6 +91,10 @@ export function rysvmdHighlights() {
 
                             case 'InlineMath':
                                 builder.add(node.from, node.to, inlineMathDecoration);
+                                break;
+
+                            case 'UrlBranch':
+                                builder.add(node.from, node.to, urlBranchDecoration);
                                 break;
                         }
                     }

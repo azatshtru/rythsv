@@ -212,6 +212,35 @@ function resolveDelimiters(cx, slice, offset, ignore) {
     resolver.resolve();
 }
 
+function closeUrl(cx, start) {
+    let spaced = cx.char(start + 1) === 32;
+    let pos = start + 1 + +!!spaced;
+    let depth = 1;
+    while(pos < cx.end) {
+        const ch = cx.char(pos);
+        if(ch === 32 && spaced && pos + 1 < cx.end && cx.char(pos + 1) === ')'.charCodeAt(0)) {
+            return pos + 2;
+        } else if(ch === 32) {
+            return -1;
+        }
+
+        if(ch === '`'.charCodeAt(0)) {
+            return -1;
+        }
+
+        if(cx.char(pos) === '('.charCodeAt(0)) {
+            depth += 1;
+        } else if(cx.char(pos) === ')'.charCodeAt(0)) {
+            depth -= 1;
+            if(depth === 0) {
+                return pos + 1;
+            }
+        }
+        pos += 1;
+    }
+    return -1;
+}
+
 function rysvmdInlineParserImpl(cx, next, pos) {
     if(next === '$'.codePointAt(0)) {
         return parseMath(cx, next, pos);
@@ -225,7 +254,16 @@ function rysvmdInlineParserImpl(cx, next, pos) {
             const start = cx.getDelimiterAt(open).from;
             const elts = cx.takeContent(open);
             resolveDelimiters(cx, cx.slice(start + 1, pos), start + 1, elts);
-            return cx.addElement(cx.elt("Branch", start, pos + 1, cx.takeContent(open)));
+            const branch = cx.elt("Branch", start, pos + 1, cx.takeContent(open));
+            const url = cx.char(pos + 1) === '('.charCodeAt(0) ? closeUrl(cx, pos + 1) : -1;
+            if(url > -1) {
+                return cx.addElement(cx.elt("UrlBranch", start, url, [
+                    cx.elt("Url", pos + 1, url, []),
+                    branch,
+                ]));
+            } else {
+                return cx.addElement(branch);
+            }
         }
     }
     return -1;
@@ -250,6 +288,8 @@ export function rysvmdInlineParser() {
             "Bra",
             "Ket",
             "Branch",
+            "UrlBranch",
+            "Url",
         ],
         parseInline: [{
             name: "rysvmdInline",
