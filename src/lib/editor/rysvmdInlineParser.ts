@@ -232,7 +232,7 @@ function closeUrl(cx, start) {
             depth += 1;
         } else if(cx.char(pos) === ')'.charCodeAt(0)) {
             depth -= 1;
-            if(depth === 0) {
+            if(depth === 0 && !spaced) {
                 return pos + 1;
             }
         }
@@ -257,7 +257,7 @@ function rysvmdInlineParserImpl(cx, next, pos) {
             const branch = cx.elt("Branch", start, pos + 1, cx.takeContent(open));
             const url = cx.char(pos + 1) === '('.charCodeAt(0) ? closeUrl(cx, pos + 1) : -1;
             if(url > -1) {
-                return cx.addElement(cx.elt("UrlBranch", start, url, [
+                return cx.addElement(cx.elt("Anchor", start, url, [
                     cx.elt("Url", pos + 1, url, []),
                     branch,
                 ]));
@@ -288,7 +288,7 @@ export function rysvmdInlineParser() {
             "Bra",
             "Ket",
             "Branch",
-            "UrlBranch",
+            "Anchor",
             "Url",
         ],
         parseInline: [{

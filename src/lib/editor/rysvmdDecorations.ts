@@ -41,9 +41,10 @@ export const inlineMathDecoration = Decoration.mark({
 });
 
 export const grayDecoration = Decoration.mark({
-    class: 'text-gray-300',
+    class: 'text-slate-300',
 });
 
-export const urlBranchDecoration = Decoration.mark({
-    class: 'text-indigo-700',
+export const anchorDecoration = Decoration.mark({
+    class: 'text-blue-800',
+    tagName: 'a',
 });

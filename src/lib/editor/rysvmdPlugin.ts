@@ -13,7 +13,7 @@ import {
     inlineMathDecoration,
     underlineDecoration,
     grayDecoration,
-    urlBranchDecoration,
+    anchorDecoration,
 } from './rysvmdDecorations.ts';
 import { rysvmdInlineParser } from './rysvmdInlineParser.ts';
 import { rysvmdNewlineParser } from './rysvmdNewlineParser.ts';
@@ -27,6 +27,10 @@ export function rysvmd() {
     return new LanguageSupport(rysvmdLanguage());
 }
 
+function intersects(a1, b1, a2, b2) {
+    return a1 <= b2 && a2 <= b1;
+}
+
 export function rysvmdHighlights() {
     const rysvmdHighlightField = StateField.define({
         create() {
@@ -35,7 +39,7 @@ export function rysvmdHighlights() {
 
         update(decorations, tr) {
             decorations = decorations.map(tr.changes);
-            if (tr.docChanged || tr.scrollIntoView) {
+            if (tr.docChanged || tr.isUserEvent || tr.scrollIntoView) {
                 const builder = {
                     ranges: [],
                     add(from, to, decoration) {
@@ -45,6 +49,13 @@ export function rysvmdHighlights() {
                         return this.ranges;
                     },
                 };
+                const decoration1 = (node, decoration, a, b) => {
+                    a = a ?? 0;
+                    b = b ?? 0;
+                    const ranges = tr.state.selection.ranges;
+                    const hide = ranges.every(range => !intersects(node.from - a, node.to + b, range.from, range.to));
+                    return hide ? Decoration.replace({}) : decoration;
+                }
                 const tree = syntaxTree(tr.state);
                 tree.iterate({
                     enter: (node) => {
@@ -93,8 +104,12 @@ export function rysvmdHighlights() {
                                 builder.add(node.from, node.to, inlineMathDecoration);
                                 break;
 
-                            case 'UrlBranch':
-                                builder.add(node.from, node.to, urlBranchDecoration);
+                            case 'Anchor':
+                                builder.add(node.from, node.to, anchorDecoration);
+                                break;
+
+                            case 'Url':
+                                builder.add(node.from, node.to, grayDecoration);
                                 break;
                         }
                     }
