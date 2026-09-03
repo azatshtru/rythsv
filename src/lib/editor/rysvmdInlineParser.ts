@@ -258,8 +258,8 @@ function rysvmdInlineParserImpl(cx, next, pos) {
             const url = cx.char(pos + 1) === '('.charCodeAt(0) ? closeUrl(cx, pos + 1) : -1;
             if(url > -1) {
                 return cx.addElement(cx.elt("Anchor", start, url, [
-                    cx.elt("Url", pos + 1, url, []),
                     branch,
+                    cx.elt("Url", pos + 1, url, []),
                 ]));
             } else {
                 return cx.addElement(branch);

@@ -14,6 +14,8 @@ import {
     underlineDecoration,
     grayDecoration,
     anchorDecoration,
+    anchorArrowDecoration,
+    decorationSimple,
 } from './rysvmdDecorations.ts';
 import { rysvmdInlineParser } from './rysvmdInlineParser.ts';
 import { rysvmdNewlineParser } from './rysvmdNewlineParser.ts';
@@ -45,15 +47,16 @@ export function rysvmdHighlights() {
                     add(from, to, decoration) {
                         this.ranges.push(decoration.range(from, to));
                     },
+                    addWidget(decoration, to) {
+                        this.ranges.push(decoration.range(to));
+                    },
                     finish() {
                         return this.ranges;
                     },
                 };
-                const decoration1 = (node, decoration, a, b) => {
-                    a = a ?? 0;
-                    b = b ?? 0;
+                const decoration1 = (decoration, a, b) => {
                     const ranges = tr.state.selection.ranges;
-                    const hide = ranges.every(range => !intersects(node.from - a, node.to + b, range.from, range.to));
+                    const hide = ranges.every(range => !intersects(a, b, range.from, range.to));
                     return hide ? Decoration.replace({}) : decoration;
                 }
                 const tree = syntaxTree(tr.state);
@@ -105,7 +108,10 @@ export function rysvmdHighlights() {
                                 break;
 
                             case 'Anchor':
+                                const branch = node.node.firstChild;
+                                const url = node.node.lastChild;
                                 builder.add(node.from, node.to, anchorDecoration);
+                                builder.addWidget(anchorArrowDecoration, node.to);
                                 break;
 
                             case 'Url':

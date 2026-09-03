@@ -1,4 +1,5 @@
 import { Decoration } from '@codemirror/view';
+import { ArrowSvgWidget } from './rysvmdAnchorWidgets.ts';
 
 export const h1Decoration = Decoration.mark({
     class: 'font-bold text-3xl'
@@ -41,10 +42,19 @@ export const inlineMathDecoration = Decoration.mark({
 });
 
 export const grayDecoration = Decoration.mark({
-    class: 'text-slate-300',
+    class: 'text-gray-400',
 });
 
 export const anchorDecoration = Decoration.mark({
-    class: 'text-blue-800',
+    class: 'text-blue-800 break-all underline underline-offset-[0.238em] decoration-[0.09em]',
     tagName: 'a',
+});
+
+export const anchorArrowDecoration = Decoration.widget({
+    widget: new ArrowSvgWidget(),
+    side: 1,
+});
+
+export const decorationSimple = Decoration.mark({
+    class: 'text-black',
 });
