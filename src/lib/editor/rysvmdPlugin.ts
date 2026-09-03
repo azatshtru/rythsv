@@ -58,21 +58,47 @@ export function rysvmdHighlights() {
                     const ranges = tr.state.selection.ranges;
                     const hide = ranges.every(range => !intersects(a, b, range.from, range.to));
                     return hide ? Decoration.replace({}) : decoration;
-                }
+                };
+                const selectedLines = () => {
+                    const ranges = tr.state.selection.ranges;
+                    const lines = new Set();
+                    for(const range of ranges) {
+                        const from = tr.state.doc.lineAt(range.from);
+                        const to = tr.state.doc.lineAt(range.to);
+                        for(let i = from.number; i <= to.number; i++) {
+                            lines.add(tr.state.doc.line(i).number);
+                        }
+                    }
+                    return lines;
+                };
+                const decoration2 = (decoration, to) => {
+                    const lines = selectedLines();
+                    const hide = [...lines].every(line => line != tr.state.doc.lineAt(to).number);
+                    return hide ? Decoration.replace({}) : decoration;
+                };
                 const tree = syntaxTree(tr.state);
                 tree.iterate({
                     enter: (node) => {
                         switch(node.name) {
                             case 'ATXHeading1':
-                                builder.add(node.from, node.to, h1Decoration);
+                                if(node.from + 2 < node.to) {
+                                    builder.add(node.from, node.from + 2, decoration2(h1Decoration, node.from + 2));
+                                    builder.add(node.from + 2, node.to, h1Decoration);
+                                }
                                 break;
 
                             case 'ATXHeading2':
-                                builder.add(node.from, node.to, h2Decoration);
+                                if(node.from + 3 < node.to) {
+                                    builder.add(node.from, node.from + 3, decoration2(h2Decoration, node.from + 3));
+                                    builder.add(node.from + 3, node.to, h2Decoration);
+                                }
                                 break;
 
                             case 'ATXHeading3':
-                                builder.add(node.from, node.to, h3Decoration);
+                                if(node.from + 4 < node.to) {
+                                    builder.add(node.from, node.from + 4, decoration2(h3Decoration, node.from + 4));
+                                    builder.add(node.from + 4, node.to, h3Decoration);
+                                }
                                 break;
 
                             case 'Italic':
@@ -90,7 +116,7 @@ export function rysvmdHighlights() {
                                 break;
 
                             case 'Dunder':
-                                builder.add(node.from, node.to, grayDecoration);
+                                builder.add(node.from, node.to, decoration2(grayDecoration, node.to));
                                 break;
 
                             case 'Strikethrough':
@@ -107,15 +133,29 @@ export function rysvmdHighlights() {
                                 builder.add(node.from, node.to, inlineMathDecoration);
                                 break;
 
+                            case 'Asterisk':
+                                builder.add(node.from, node.to, decoration2(boldDecoration, node.to));
+                                break;
+
+                            case 'Underscore':
+                                builder.add(node.from, node.to, decoration2(boldDecoration, node.to));
+                                break;
+
+                            case 'Tilde':
+                                builder.add(node.from, node.to, decoration2(decorationSimple, node.to));
+                                break;
+
                             case 'Anchor':
                                 const branch = node.node.firstChild;
                                 const url = node.node.lastChild;
                                 builder.add(node.from, node.to, anchorDecoration);
+                                builder.add(branch.from, branch.from + 1, decoration2(decorationSimple, branch.from));
+                                builder.add(branch.to - 1, branch.to, decoration2(decorationSimple, branch.to));
                                 builder.addWidget(anchorArrowDecoration, node.to);
                                 break;
 
                             case 'Url':
-                                builder.add(node.from, node.to, grayDecoration);
+                                builder.add(node.from, node.to, decoration2(grayDecoration, node.to));
                                 break;
                         }
                     }
