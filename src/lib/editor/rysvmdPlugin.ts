@@ -54,11 +54,6 @@ export function rysvmdHighlights() {
                         return this.ranges;
                     },
                 };
-                const decoration1 = (decoration, a, b) => {
-                    const ranges = tr.state.selection.ranges;
-                    const hide = ranges.every(range => !intersects(a, b, range.from, range.to));
-                    return hide ? Decoration.replace({}) : decoration;
-                };
                 const selectedLines = () => {
                     const ranges = tr.state.selection.ranges;
                     const lines = new Set();
@@ -71,9 +66,15 @@ export function rysvmdHighlights() {
                     }
                     return lines;
                 };
+                const selectedLines0 = selectedLines();
                 const decoration2 = (decoration, to) => {
-                    const lines = selectedLines();
-                    const hide = [...lines].every(line => line != tr.state.doc.lineAt(to).number);
+                    const lines = selectedLines0;
+                    const hide = !lines.has(tr.state.doc.lineAt(to).number);
+                    return hide ? Decoration.replace({}) : decoration;
+                };
+                const decoration1 = (decoration, a, b) => {
+                    const ranges = tr.state.selection.ranges;
+                    const hide = ranges.every(range => !intersects(a, b, range.from, range.to));
                     return hide ? Decoration.replace({}) : decoration;
                 };
                 const tree = syntaxTree(tr.state);
