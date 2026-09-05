@@ -44,6 +44,8 @@
 
 	:global(.cm-content) {
 		font-family: var(--font-lilex);
+        --anchor-underline-stroke: 1px;
+        --anchor-underline-offset: 4px;
 	}
 
 	:global(.cm-editor.cm-focused) {

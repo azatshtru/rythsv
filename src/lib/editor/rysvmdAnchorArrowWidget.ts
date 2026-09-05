@@ -9,10 +9,11 @@ export class ArrowSvgWidget extends WidgetType {
     toDOM() {
         const span = document.createElement('span');
         span.classList.add(
-            "relative",
-            "inline",
-            "align-baseline",
-            "mr-[0.85ch]",
+            "inline-block",
+            "w-[0.85ch]",
+            "h-[1em]",
+            "translate-y-[calc(var(--anchor-underline-offset)+var(--anchor-underline-stroke))]",
+            "-translate-x-[calc(var(--anchor-underline-stroke)/2)]"
         );
 
         const svgNamespace = "http://www.w3.org/2000/svg";
@@ -20,21 +21,16 @@ export class ArrowSvgWidget extends WidgetType {
         const svg = document.createElementNS(svgNamespace, 'svg');
         svg.setAttribute('viewBox', "0 0 100 100");
         svg.classList.add(
-            "absolute",
             "w-[1em]",
             "h-[1em]",
-            "left-0",
-            "bottom-0",
-            "-translate-x-[0.06em]",
         );
 
         const path = document.createElementNS(svgNamespace, 'path');
-        path.setAttribute('d', "M 0 101 L 0 100 L 50 50 M 50 90 L 50 50 L 10 50");
+        path.setAttribute('d', "M 0 110 L 0 100 L 50 50 M 50 90 L 50 50 L 10 50");
         path.classList.add(
-            "stroke-linecap-butt",
             "fill-none",
             "stroke-blue-800",
-            "stroke-[0.09em]",
+            "stroke-(length:--anchor-underline-stroke)",
             "[vector-effect:non-scaling-stroke]",
         );
 

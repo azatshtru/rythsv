@@ -1,16 +1,19 @@
 import { Decoration } from '@codemirror/view';
-import { ArrowSvgWidget } from './rysvmdAnchorWidgets.ts';
+import { ArrowSvgWidget } from './rysvmdAnchorArrowWidget.ts';
 
 export const h1Decoration = Decoration.mark({
-    class: 'font-bold text-3xl'
+    class: 'font-bold text-3xl',
+    attributes: { 'style': '--anchor-underline-stroke:3px;--anchor-underline-offset:7px' },
 });
 
 export const h2Decoration = Decoration.mark({
-    class: 'font-bold text-2xl'
+    class: 'font-bold text-2xl',
+    attributes: { 'style': '--anchor-underline-stroke:2px;--anchor-underline-offset:6px' },
 });
 
 export const h3Decoration = Decoration.mark({
-    class: 'font-bold text-xl'
+    class: 'font-bold text-xl',
+    attributes: { 'style': '--anchor-underline-stroke:1px;--anchor-underline-offset:5px' },
 });
 
 export const italicDecoration = Decoration.mark({
@@ -46,7 +49,7 @@ export const grayDecoration = Decoration.mark({
 });
 
 export const anchorDecoration = Decoration.mark({
-    class: 'text-blue-800 break-all underline underline-offset-[0.238em] decoration-[0.09em]',
+    class: 'text-blue-800 break-all underline underline-offset-[var(--anchor-underline-offset)] decoration-(length:--anchor-underline-stroke)',
     tagName: 'a',
 });
 
