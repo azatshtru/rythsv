@@ -4,6 +4,7 @@
 	import { EditorView, keymap } from '@codemirror/view';
 	import { defaultKeymap } from '@codemirror/commands';
 	import { rysvmd, rysvmdHighlights } from '$lib/editor/rysvmdPlugin';
+    import '$lib/mathup/mathup.css';
 
 	let { content, setContent } = $props();
 
@@ -47,6 +48,11 @@
         --anchor-underline-stroke: 1px;
         --anchor-underline-offset: 4px;
 	}
+
+    :global(math) {
+        font-family: var(--font-newcm-math);
+        font-size: var(--text-lg);
+    }
 
 	:global(.cm-editor.cm-focused) {
 		outline: none;

@@ -1,5 +1,6 @@
 import { Decoration } from '@codemirror/view';
 import { ArrowSvgWidget } from './rysvmdAnchorArrowWidget.ts';
+import { InlineMathWidget } from './rysvmdInlineMathWidget.ts';
 
 export const h1Decoration = Decoration.mark({
     class: 'font-bold text-3xl',
@@ -40,9 +41,14 @@ export const codespanDecoration = Decoration.mark({
     tagName: 'code',
 });
 
-export const inlineMathDecoration = Decoration.mark({
-    class: 'font-eb-garamond bg-mauve-400 rounded-xs border-mauve-500 border'
+export const inlineMathDecoration = (raw) => Decoration.widget({
+    widget: new InlineMathWidget(raw),
+    side: 1,
 });
+
+export const inlineMathEditing = Decoration.mark({
+    class: 'text-[0.875em] border rounded-xs border-slate-200',
+})
 
 export const grayDecoration = Decoration.mark({
     class: 'text-gray-400',
@@ -58,6 +64,6 @@ export const anchorArrowDecoration = Decoration.widget({
     side: 1,
 });
 
-export const decorationSimple = Decoration.mark({
-    class: 'text-black',
+export const noDecoration = Decoration.mark({
+    class: '',
 });

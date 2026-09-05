@@ -1,8 +1,32 @@
 @import "tailwindcss";
 
+@font-face {
+    font-family: "New Computer Modern Math";
+    src: url("/fonts/NewCMMath-Bold.woff2") format("woff2");
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "New Computer Modern Math";
+    src: url("/fonts/NewCMMath-Book.woff2") format("woff2");
+    font-weight: 450;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "New Computer Modern Math";
+    src: url("/fonts/NewCMMath-Regular.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
 @theme {
     --font-lilex: 'Lilex', monospace; 
     --font-caveat: 'Caveat', cursive; 
-    --font-eb-garamond: 'EB Garamond', serif; 
     --font-work-sans: 'Work Sans', sans-serif; 
+    --font-newcm-math: 'New Computer Modern Math', serif;
 }

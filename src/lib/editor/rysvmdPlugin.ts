@@ -11,11 +11,12 @@ import {
     strikethroughDecoration,
     codespanDecoration,
     inlineMathDecoration,
+    inlineMathEditing,
     underlineDecoration,
     grayDecoration,
     anchorDecoration,
     anchorArrowDecoration,
-    decorationSimple,
+    noDecoration,
 } from './rysvmdDecorations.ts';
 import { rysvmdInlineParser } from './rysvmdInlineParser.ts';
 import { rysvmdNewlineParser } from './rysvmdNewlineParser.ts';
@@ -131,7 +132,19 @@ export function rysvmdHighlights() {
                                 break;
 
                             case 'InlineMath':
-                                builder.add(node.from, node.to, inlineMathDecoration);
+                                if(selectedLines0.has(tr.state.doc.lineAt(node.to).number)) {
+                                    builder.add(node.from, node.to, inlineMathEditing);
+                                } else {
+                                    const inlineMathExpression = tr.state.sliceDoc(node.from + 1, node.to - 1);
+                                    if(inlineMathExpression.length > 0) {
+                                        builder.add(node.from, node.to, Decoration.replace({}));
+                                        builder.addWidget(inlineMathDecoration(inlineMathExpression), node.to);
+                                    }
+                                }
+                                break;
+
+                            case 'BacktickRun':
+                                builder.add(node.from, node.to, decoration2(noDecoration, node.to));
                                 break;
 
                             case 'Asterisk':
@@ -143,15 +156,15 @@ export function rysvmdHighlights() {
                                 break;
 
                             case 'Tilde':
-                                builder.add(node.from, node.to, decoration2(decorationSimple, node.to));
+                                builder.add(node.from, node.to, decoration2(noDecoration, node.to));
                                 break;
 
                             case 'Anchor':
                                 const branch = node.node.firstChild;
                                 const url = node.node.lastChild;
                                 builder.add(node.from, node.to, anchorDecoration);
-                                builder.add(branch.from, branch.from + 1, decoration2(decorationSimple, branch.from));
-                                builder.add(branch.to - 1, branch.to, decoration2(decorationSimple, branch.to));
+                                builder.add(branch.from, branch.from + 1, decoration2(noDecoration, branch.from));
+                                builder.add(branch.to - 1, branch.to, decoration2(noDecoration, branch.to));
                                 builder.addWidget(anchorArrowDecoration, node.to);
                                 break;
 
