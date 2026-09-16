@@ -132,15 +132,9 @@ export function rysvmdHighlights() {
                                 break;
 
                             case 'InlineMath':
-                                if(selectedLines0.has(tr.state.doc.lineAt(node.to).number)) {
-                                    builder.add(node.from, node.to, inlineMathEditing);
-                                } else {
-                                    const inlineMathExpression = tr.state.sliceDoc(node.from + 1, node.to - 1);
-                                    if(inlineMathExpression.length > 0) {
-                                        builder.add(node.from, node.to, Decoration.replace({}));
-                                        builder.addWidget(inlineMathDecoration(inlineMathExpression), node.to);
-                                    }
-                                }
+                                builder.add(node.from, node.to, decoration2(inlineMathEditing, node.to));
+                                const inlineMathExpression = tr.state.sliceDoc(node.from + 1, node.to - 1);
+                                builder.addWidget(inlineMathDecoration(inlineMathExpression), node.to);
                                 break;
 
                             case 'BacktickRun':

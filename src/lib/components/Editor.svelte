@@ -4,7 +4,7 @@
 	import { EditorView, keymap } from '@codemirror/view';
 	import { defaultKeymap } from '@codemirror/commands';
 	import { rysvmd, rysvmdHighlights } from '$lib/editor/rysvmdPlugin';
-    import '$lib/mathup/mathup.css';
+	import '$lib/mathup/mathup.css';
 
 	let { content, setContent } = $props();
 
@@ -38,6 +38,22 @@
 	});
 </script>
 
+<svelte:head>
+	<script>
+		window.MathJax = {
+			loader: { load: ['input/mml', 'output/chtml'] },
+			options: {
+				enableMenu: false,
+			}
+		};
+	</script>
+	<script
+		id="MathJax-script"
+		async
+		src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"
+	></script>
+</svelte:head>
+
 <div bind:this={editor}></div>
 
 <style>
@@ -45,14 +61,9 @@
 
 	:global(.cm-content) {
 		font-family: var(--font-lilex);
-        --anchor-underline-stroke: 1px;
-        --anchor-underline-offset: 4px;
+		--anchor-underline-stroke: 1px;
+		--anchor-underline-offset: 4px;
 	}
-
-    :global(math) {
-        font-family: var(--font-newcm-math);
-        font-size: var(--text-lg);
-    }
 
 	:global(.cm-editor.cm-focused) {
 		outline: none;

@@ -47,7 +47,7 @@ export const inlineMathDecoration = (raw) => Decoration.widget({
 });
 
 export const inlineMathEditing = Decoration.mark({
-    class: 'text-[0.875em] border rounded-xs border-slate-200',
+    class: 'text-[0.875em] text-gray-500 font-medium border rounded-xs border-slate-200 mr-2.5',
 })
 
 export const grayDecoration = Decoration.mark({

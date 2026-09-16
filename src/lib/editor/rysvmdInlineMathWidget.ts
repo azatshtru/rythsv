@@ -10,12 +10,22 @@ export class InlineMathWidget extends WidgetType {
     toDOM() {
         const span = document.createElement('span');
         span.classList.add(
-            'inline',
+            'z-10',
+            'inline-block',
             'align-baseline',
+            'h-fit',
+            'rounded-lg',
+            'border-slate-100',
+            'bg-white',
+            'text-black',
+            'pointer-events-none',
+            'select-none',
+            'drag-none',
         );
 
         const mathml = mathup(this.raw, {});
         span.append(mathml.toDOM());
+        MathJax.typesetPromise([span]);
 
         return span;
     }
