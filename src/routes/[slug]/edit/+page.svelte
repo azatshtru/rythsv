@@ -3,6 +3,7 @@
 	import Editor from "$lib/components/Editor.svelte";
 	import CheckIcon from "$lib/icons/CheckIcon.svelte";
 
+    const { data } = $props();
     const formId = 'savedoc';
 </script>
 
@@ -20,5 +21,5 @@
 </nav>
 
 <main>
-    <Editor initialContent="" name="content" form={formId} />
+    <Editor initialContent={data.content} name="content" form={formId} />
 </main>

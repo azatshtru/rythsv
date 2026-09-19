@@ -1,17 +1,22 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
-	import { EditorState } from '@codemirror/state';
-	import { EditorView, keymap } from '@codemirror/view';
-	import { defaultKeymap } from '@codemirror/commands';
-	import { rysvmd, rysvmdHighlights } from '$lib/editor/rysvmdPlugin';
+	import type { EditorView } from '@codemirror/view';
 	import '$lib/mathup/mathup.css';
 
-	let { content, setContent } = $props();
+	const { initialContent, name, form } = $props();
 
-	let editor: HTMLDivElement;
+	let content = $state(initialContent);
+
 	let view: EditorView;
+	let editor: HTMLDivElement;
+	let textarea: HTMLTextAreaElement;
 
-	onMount(() => {
+	onMount(async () => {
+		const { EditorState } = await import('@codemirror/state');
+		const { EditorView, keymap } = await import('@codemirror/view');
+		const { defaultKeymap } = await import('@codemirror/commands');
+		const { rysvmd, rysvmdHighlights } = await import('$lib/editor/rysvmdPlugin');
+
 		let state = EditorState.create({
 			doc: content,
 			extensions: [
@@ -20,7 +25,7 @@
 				keymap.of(defaultKeymap),
 				EditorView.lineWrapping,
 				EditorView.updateListener.of((update) => {
-					setContent(update.state.doc.toString());
+					content = update.state.doc.toString();
 				})
 			]
 		});
@@ -29,6 +34,21 @@
 			state,
 			parent: editor
 		});
+
+		const [anchor, head] = textarea ? [textarea.selectionStart, textarea.selectionEnd] : [0, 0];
+
+		view.dispatch({
+			selection: { anchor, head },
+			scrollIntoView: true
+		});
+
+		const textareaIsFocused = document.activeElement === textarea;
+
+		textarea.hidden = true;
+
+		if (textareaIsFocused) {
+			view.focus();
+		}
 	});
 
 	onDestroy(() => {
@@ -43,7 +63,7 @@
 		window.MathJax = {
 			loader: { load: ['input/mml', 'output/chtml'] },
 			options: {
-				enableMenu: false,
+				enableMenu: false
 			}
 		};
 	</script>
@@ -54,6 +74,12 @@
 	></script>
 </svelte:head>
 
+<textarea
+	bind:this={textarea}
+	bind:value={content}
+    name={name}
+    form={form}
+	class="w-full h-fit field-sizing-content p-1.5 resize-none outline-0 border-0"></textarea>
 <div bind:this={editor}></div>
 
 <style>

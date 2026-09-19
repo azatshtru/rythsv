@@ -17,7 +17,7 @@
         {/each}
     </div>
     <div class="mb-2 mt-3 w-full flex items-center gap-0 -translate-x-1">
-        <a aria-label="open" href="/note">
+        <a aria-label="open" href={`/${uuid}`}>
             <svg
                 class="fill-slate-700"
                 xmlns="http://www.w3.org/2000/svg"

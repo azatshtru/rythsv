@@ -4,6 +4,8 @@
 	import SlashIcon from "$lib/icons/SlashIcon.svelte";
 	import PlusIcon from "$lib/icons/PlusIcon.svelte";
 
+    const { data } = $props();
+
     function symbol(symbol: string, ...args: string[]) { 
         const [value, type] = args.length === 0 ? ['', '!'] : args;
         return { 
@@ -29,8 +31,8 @@
 
 <main>
     <div class="columns-1 xs:columns-2 sm:columns-3 md:columns-4 lg:columns-5 xl:columns-6 m-2 gap-2"> 
-        {#each { length: 1 } as _, i}
-        <NoteCard content={`<p class="font-lilex text-sm/tight">${i}</p>`} 
+        {#each data.all as [uuid, entry], i}
+        <NoteCard content={`${entry.content}`} 
                 symbols={[
                     symbol('alpha', 'Adwait', '$'),
                     symbol('bravo', '2', '#'),
@@ -39,7 +41,7 @@
                     symbol('echo', '2025/11/25', '&'),
                     symbol('foxtrot')
                 ]} 
-                uuid={self.crypto.randomUUID().replace(/-/g, '').toUpperCase().slice(0, 6)} 
+                uuid={uuid} 
             />
         {/each}
     </div>
