@@ -12,7 +12,7 @@
         <p class="text-xs text-gray-400">You have disabled JavaScript for this website. ryth will work reliably regardless of JavaScript.</p>
         <p class="text-xs text-gray-400">That said, enabling JS enables live-editing, which makes editing notes much smoother and fun ;)</p>
     </noscript>
-    <form id={formId} method="POST" use:enhance>
+    <form class="flex items-center-safe" id={formId} method="POST" use:enhance>
         <button class="hover:bg-gray-50 rounded ring-gray-100 ring-2 p-1" aria-label="done">
             <CheckIcon height="24px" width="24px" class="fill-gray-500" />
         </button>
