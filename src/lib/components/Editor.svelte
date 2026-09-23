@@ -83,7 +83,12 @@
 			loader: { load: ['input/mml', 'output/chtml'] },
 			options: {
 				enableMenu: false
-			}
+			},
+            startup: {
+                ready: () => {
+                    MathJax.startup.defaultReady();
+                }
+            }
 		};
 	</script>
 	<script
