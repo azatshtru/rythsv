@@ -84,11 +84,6 @@
 			options: {
 				enableMenu: false
 			},
-            startup: {
-                ready: () => {
-                    MathJax.startup.defaultReady();
-                }
-            }
 		};
 	</script>
 	<script
