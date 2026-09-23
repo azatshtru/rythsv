@@ -12,10 +12,16 @@
 	let textarea: HTMLTextAreaElement;
 
 	onMount(async () => {
+        await new Promise(resolve => setTimeout(resolve, 10000));
 		const { EditorState } = await import('@codemirror/state');
 		const { EditorView, keymap } = await import('@codemirror/view');
 		const { defaultKeymap } = await import('@codemirror/commands');
 		const { rysvmd, rysvmdHighlights } = await import('$lib/editor/rysvmdPlugin');
+        
+        const baseTheme = EditorView.theme({
+            ".cm-content, .cm-gutter": {minHeight: "100vh", fontFamily: "var(--font-lilex)" },
+            "&.cm-editor.cm-focused": { outline: "none" },
+        });
 
 		let state = EditorState.create({
 			doc: content,
@@ -26,9 +32,15 @@
 				EditorView.lineWrapping,
 				EditorView.updateListener.of((update) => {
 					content = update.state.doc.toString();
-				})
+				}),
+                baseTheme,
 			]
 		});
+
+        const textareaStyle = getComputedStyle(textarea);
+        const textareaTop = textarea.getBoundingClientRect().top + window.scrollY;
+        const textareaLineHeight = parseFloat(textareaStyle.lineHeight);
+        const textareaTopLine = Math.floor((window.scrollY - textareaTop) / textareaLineHeight);
 
 		view = new EditorView({
 			state,
@@ -39,12 +51,18 @@
 
 		view.dispatch({
 			selection: { anchor, head },
-			scrollIntoView: true
+            scrollIntoView: false,
 		});
 
 		const textareaIsFocused = document.activeElement === textarea;
 
 		textarea.hidden = true;
+
+        const handoffLine = Math.min(textareaTopLine, view.state.doc.lines - 1);
+        const handoffFrom = view.state.doc.line(handoffLine + 1).from;
+		view.dispatch({
+            effects: EditorView.scrollIntoView(handoffFrom, {y: 'start'}),
+		});
 
 		if (textareaIsFocused) {
 			view.focus();
@@ -79,19 +97,14 @@
 	bind:value={content}
     name={name}
     form={form}
-	class="w-full h-fit field-sizing-content p-1.5 resize-none outline-0 border-0"></textarea>
-<div bind:this={editor}></div>
+	class="w-full min-h-screen h-fit field-sizing-content p-1.5 resize-none outline-0 border-0"></textarea>
+<div class="codemirror-container" bind:this={editor}></div>
 
 <style>
 	@reference "tailwindcss";
 
-	:global(.cm-content) {
-		font-family: var(--font-lilex);
+	.codemirror-container {
 		--anchor-underline-stroke: 1px;
 		--anchor-underline-offset: 4px;
-	}
-
-	:global(.cm-editor.cm-focused) {
-		outline: none;
 	}
 </style>
