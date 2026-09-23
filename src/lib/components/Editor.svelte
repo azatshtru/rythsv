@@ -12,7 +12,6 @@
 	let textarea: HTMLTextAreaElement;
 
 	onMount(async () => {
-        await new Promise(resolve => setTimeout(resolve, 10000));
 		const { EditorState } = await import('@codemirror/state');
 		const { EditorView, keymap } = await import('@codemirror/view');
 		const { defaultKeymap } = await import('@codemirror/commands');
@@ -59,10 +58,12 @@
 		textarea.hidden = true;
 
         const handoffLine = Math.min(textareaTopLine, view.state.doc.lines - 1);
-        const handoffFrom = view.state.doc.line(handoffLine + 1).from;
-		view.dispatch({
-            effects: EditorView.scrollIntoView(handoffFrom, {y: 'start'}),
-		});
+        if(handoffLine >= 0) {
+            const handoffFrom = view.state.doc.line(handoffLine + 1).from;
+            view.dispatch({
+                effects: EditorView.scrollIntoView(handoffFrom, {y: 'start'}),
+            });
+        }
 
 		if (textareaIsFocused) {
 			view.focus();
