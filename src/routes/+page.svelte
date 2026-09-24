@@ -31,8 +31,8 @@
 
 <main>
     <div class="columns-1 xs:columns-2 sm:columns-3 md:columns-4 lg:columns-5 xl:columns-6 m-2 gap-2"> 
-        {#each data.all as [uuid, entry], i}
-        <NoteCard content={`${entry.content}`} 
+        {#each data.all as [uuid, preview], i}
+        <NoteCard content={`${preview}`} 
                 symbols={[
                     symbol('alpha', 'Adwait', '$'),
                     symbol('bravo', '2', '#'),

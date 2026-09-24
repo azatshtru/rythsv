@@ -15,12 +15,22 @@ const database = {
     },
 };
 
+const previews = new Map();
+
 function Uuid() {
     return self.crypto.randomUUID().replace(/-/g, '').slice(0, 12);
 }
 
 export function fromUuid(uuid) {
     return database.notes.get(uuid);
+}
+
+export function preview(uuid) {
+    return previews.get(uuid);
+}
+
+export function savePreview(uuid, previewHtml) {
+    previews.set(uuid, previewHtml);
 }
 
 export function save(uuid, content, symbols) {
@@ -47,7 +57,7 @@ export function remove(uuid) {
 export function filter(filters) {
     const keys = Object.keys(filters);
     if(keys.length === 0) {
-        return database.notes;
+        return [...database.notes.keys()];
     }
     const firstKey = keys[0];
     const firstPredicate = filters[firstKey];
@@ -61,5 +71,5 @@ export function filter(filters) {
             return Object.hasOwn(symbols, k) && predicate(symbols[k]);
         });
     }
-    return notes.map(uuid => [uuid, database.notes.get(uuid)]);
+    return notes;
 }

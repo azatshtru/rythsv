@@ -1,7 +1,7 @@
-import { remove, filter } from '$lib/database/database.ts';
+import { remove, filter, preview } from '$lib/database/database.ts';
 
 export function load({ params }) {
-    const all = filter({});
+    const all = filter({}).map(uuid => [uuid, preview(uuid)]);
     return {
         all,
     }

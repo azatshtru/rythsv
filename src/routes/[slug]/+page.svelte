@@ -10,7 +10,7 @@
 </nav>
 
 <main>
-    <div class="p-2">
+    <div class="px-2 py-1">
         {@html data.content}
     </div>
 </main>
