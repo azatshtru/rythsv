@@ -17,8 +17,10 @@
 		const { defaultKeymap } = await import('@codemirror/commands');
 		const { rysvmd, rysvmdHighlights } = await import('$lib/editor/rysvmdPlugin');
         
+        // const verticalOffset = textarea.getBoundingClientRect().top + window.scrollY;
+        // const minHeight = `calc(100vh - ${verticalOffset}px)`;
         const baseTheme = EditorView.theme({
-            ".cm-content, .cm-gutter": {minHeight: "100vh", fontFamily: "var(--font-lilex)" },
+            ".cm-content, .cm-gutter": { minHeight: "100vh", fontFamily: "var(--font-lilex)" },
             "&.cm-editor.cm-focused": { outline: "none" },
         });
 
