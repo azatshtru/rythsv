@@ -1,3 +1,6 @@
+import { anchorArrow } from './anchorArrow.ts';
+import { inlineMathRenderer } from './inlineMathRenderer.ts';
+
 function* splitNewline(s) {
     let start = 0;
     let match;
@@ -131,6 +134,12 @@ function parseInlinePrime(line) {
                 tokens.push({ kind: 'Codespan', text: line.slice(i, j + 1), from: i, to: j + 1 });
                 i = j;
             }
+        } else if (c === '$') {
+            const j = line.indexOf('$', i + 1);
+            if(j > -1) {
+                tokens.push({ kind: 'InlineMath', text: line.slice(i, j + 1), from: i, to: j + 1 });
+                i = j;
+            }
         } else if(c === '[') {
             depth += 1;
             tokens.push({ kind: 'Bra', from: i })
@@ -139,13 +148,13 @@ function parseInlinePrime(line) {
                 depth -= 1;
                 const last = tokens.findLastIndex(c => c.kind === 'Bra');
                 const from = tokens[last].from;
-                const children = parseInline(line.slice(from, i + 1), tokens.slice(last + 1), from);
+                const children = parseInline(line.slice(from + 1, i), tokens.slice(last + 1), from + 1);
                 tokens.length = last;
                 const url = resolveUrl(line.slice(i + 1));
                 if(url !== null) {
-                    tokens.push({ kind: 'Url', from, to: i + 1 + url, children, url: line.slice(i + 2, i + 1 + url).trim() });
+                    tokens.push({ kind: 'Url', from, to: i + 2 + url, children, url: line.slice(i + 2, i + 1 + url).trim() });
                 } else {
-                    tokens.push({ kind: 'Branch', from, to: i, children });
+                    tokens.push({ kind: 'Branch', from, to: i + 1, children });
                 }
             }
         }
@@ -161,10 +170,10 @@ function parseInline(line, ignore, offset) {
     let skip = 0;
     const stack = inlineStack();
     while(i < line.length) {
-        if(skip < ignore.length && ignore[skip].from <= i + offset && i + offset <= ignore[skip].to) {
+        if(skip < ignore.length && ignore[skip].from <= i + offset && i + offset < ignore[skip].to) {
             stack.pushText(line.slice(j, i));
             stack.pushToken(ignore[skip]);
-            i = ignore[skip].to + 1 - offset;
+            i = ignore[skip].to - offset;
             j = i;
             skip += 1;
             continue;
@@ -178,8 +187,8 @@ function parseInline(line, ignore, offset) {
             stack.pushText(line.slice(j, i));
             let run = 1;
             while(run < 3 && line.at(i + run) === '_') run += 1;
-            i += run - 1;
-            j = i + 1;
+            i += run;
+            j = i;
             switch(run) {
                 case 1:
                     stack.pushUnderscore();
@@ -191,6 +200,7 @@ function parseInline(line, ignore, offset) {
                     stack.pushU3();
                     break;
             }
+            continue;
         } else if(c === '~') {
             stack.pushText(line.slice(j, i));
             stack.pushTilde();
@@ -254,8 +264,17 @@ function transformInlinePrime(tokens) {
             case 'Codespan':
                 result += `<code class="font-lilex bg-gray-200 rounded-xs border-gray-300 border text-[0.875em] px-px">${token.text.slice(1, -1)}</code>`;
                 break;
+            case 'InlineMath':
+                const inlineMathRender = inlineMathRenderer(token.text.slice(1, -1));
+                result += inlineMathRender;
+                break;
             case 'Branch':
-                result += `<span>${transformInlinePrime(token.children)}</span>`;
+                result += `<span>[${transformInlinePrime(token.children)}]</span>`;
+                break;
+            case 'Url':
+                const anchorDecoration = "text-blue-800 break-all underline underline-offset-(--anchor-underline-offset) decoration-(length:--anchor-underline-stroke)";
+                const arrow = anchorArrow();
+                result += `<a class="${anchorDecoration}" href=${token.url}>${transformInlinePrime(token.children)}</a>${arrow}`;
                 break;
             default:
                 result += `<span class="text-red-500">${token.kind}</span>`;
@@ -274,7 +293,11 @@ function heading(line) {
     while(line.at(i) === '#' && i < 3) i += 1;
     if(line.at(i) !== ' ') return null;
     const utility = `text-${i === 3 ? '' : 4 - i}xl font-bold`;
-    return `<h${i} class="${utility}">${transformInline(line.slice(i + 1))}</h${i}>`;
+    const style = 
+        i === 1 ? '--anchor-underline-stroke:3px;--anchor-underline-offset:7px;' 
+        : i === 2 ? '--anchor-underline-stroke:2px;--anchor-underline-offset:6px'
+        : '--anchor-underline-stroke:1px;--anchor-underline-offset:5px';
+    return `<h${i} style="${style}" class="${utility}">${transformInline(line.slice(i + 1))}</h${i}>`;
 }
 
 function paragraph(line) {
@@ -338,5 +361,5 @@ function preview(plaintext, threshold = 1) {
 }
 
 export function toHTMLPreview(plaintext, threshold) {
-    return preview(plaintext, threshold).join('');
+    return `<div style="--anchor-arrow-display:none;--anchor-underline-stroke:1px;">${preview(plaintext, threshold).join('')}</div>`;
 }

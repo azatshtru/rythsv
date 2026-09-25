@@ -16,6 +16,22 @@
     }
 </script>
 
+<svelte:head>
+	<script>
+		window.MathJax = {
+			loader: { load: ['input/mml', 'output/chtml'] },
+			options: {
+				enableMenu: false,
+			},
+		};
+	</script>
+	<script
+		id="MathJax-script"
+		async
+		src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"
+	></script>
+</svelte:head>
+
 <nav class="flex flex-row mr-2.5 ml-1.5 mt-2.5 mb-3 gap-2.5 items-center-safe">
     <h1 class="text-2xl font-bold font-caveat grow">rythspace</h1>
     <button class="hover:bg-gray-50 rounded ring-gray-100 ring-2 p-1" aria-label="command">
