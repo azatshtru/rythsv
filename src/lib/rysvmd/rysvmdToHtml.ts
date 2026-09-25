@@ -361,5 +361,5 @@ function preview(plaintext, threshold = 1) {
 }
 
 export function toHTMLPreview(plaintext, threshold) {
-    return `<div style="--anchor-arrow-display:none;--anchor-underline-stroke:1px;">${preview(plaintext, threshold).join('')}</div>`;
+    return preview(plaintext, threshold).join('');
 }

@@ -1,11 +1,14 @@
 <script lang="ts">
+	import { mathjaxTypeset } from "$lib/attachments/mathjax";
     import SymbolChip from "$lib/components/SymbolChip.svelte";
 
 	const { content, symbols, uuid } = $props();
 </script>
 
 <div class="hover:scale-101 hover:rotate-1 hover:-translate-y-0.5 hover:translate-z-1 transition-transform ease-in-out duration-75 border rounded-xs overflow-hidden border-gray-200 outline outline-gray-300 p-4 h-fit break-inside-avoid mb-2 shadow">
-    {@html content}
+    <div style={"--anchor-arrow-display:none;--anchor-underline-stroke:1px;"} {@attach mathjaxTypeset}>
+        {@html content}
+    </div>
     <span class="font-bold text-xs text-gray-300 mb-3 block">...</span>
     <div class="flex gap-1 flex-wrap font-work-sans"> 
         {#each symbols as symbol}

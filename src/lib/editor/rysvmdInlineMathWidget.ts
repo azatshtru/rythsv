@@ -18,7 +18,7 @@ export class InlineMathWidget extends WidgetType {
 
         const mathml = mathup(this.raw, {});
         span.append(mathml.toDOM());
-        if(MathJax.typesetPromise) {
+        if(MathJax && MathJax.typesetPromise) {
             MathJax.typesetPromise([span]);
         }
 

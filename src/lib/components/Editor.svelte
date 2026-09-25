@@ -79,22 +79,6 @@
 	});
 </script>
 
-<svelte:head>
-	<script>
-		window.MathJax = {
-			loader: { load: ['input/mml', 'output/chtml'] },
-			options: {
-				enableMenu: false
-			},
-		};
-	</script>
-	<script
-		id="MathJax-script"
-		async
-		src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"
-	></script>
-</svelte:head>
-
 <textarea
 	bind:this={textarea}
 	bind:value={content}
